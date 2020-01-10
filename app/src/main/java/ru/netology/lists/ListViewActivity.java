@@ -2,26 +2,25 @@ package ru.netology.lists;
 
 
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//Загружаю после того, как отправила поэтому пишу коммент к заданию тут.
-//Я вообще не поняла, при чем тут какой-то автор, который упоминается в формулировке задания, и откуда я его должна взять
-//Поэтому в итоге я сделала так как поняла. А именно: добавление/удаление изначальных строк-примеров. В общем посмотрите.
-//Кажется даже все работает
 
 public class ListViewActivity extends AppCompatActivity {
     private List<Map<String, String>> content = new ArrayList();
@@ -36,7 +35,7 @@ public class ListViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_view);
 
-        writeFile();
+        textSave();
 
         arrayContent = readFile();
 
@@ -57,27 +56,13 @@ public class ListViewActivity extends AppCompatActivity {
 
     }
 
-    private void writeFile() {
-        String booksList = getString(R.string.large_text);
-
-        try {
-            FileOutputStream fileOutput = openFileOutput("list.txt", MODE_PRIVATE);
-            fileOutput.write(booksList.getBytes());
-            fileOutput.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private String[] readFile() {
         String[] arrayContent = null;
         try {
             FileInputStream fileInput = openFileInput("list.txt");
             InputStreamReader reader = new InputStreamReader(fileInput);
             BufferedReader buffer = new BufferedReader(reader);
-            StringBuffer strBuffer = new StringBuffer();
+            StringBuilder strBuffer = new StringBuilder();
             String lines;
             while ((lines = buffer.readLine()) != null) {
                 strBuffer.append(lines);
@@ -89,6 +74,42 @@ public class ListViewActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return arrayContent;
+    }
+
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        return Environment.MEDIA_MOUNTED.equals(state);
+    }
+
+
+    public void SaveFile(String filePath, String FileContent) {
+        File file = new File(filePath);
+        try {
+            if (!file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
+            file.createNewFile();
+            FileOutputStream fOut = new FileOutputStream(file);
+            OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+            myOutWriter.write(FileContent);
+            myOutWriter.close();
+            fOut.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void textSave() {
+        String folderName = "temp/codeFolder";
+        String fileName = "list.txt";
+        String booksList = getString(R.string.large_text);
+
+        String fullPath = Environment.getExternalStorageDirectory().getAbsolutePath()
+                + "/" + folderName
+                + "/" + fileName;
+        if (isExternalStorageWritable()) {
+            SaveFile(fullPath, booksList);
+        }
     }
 
 }
